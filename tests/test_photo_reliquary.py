@@ -168,7 +168,7 @@ def test_builtin_plugin_loads() -> None:
     assert '.jpg' in plugin.supported_file_types
 
 
-def test_list_photos_by_ids_uses_single_batch_lookup(tmp_path: Path, monkeypatch) -> None:
+def test_list_photos_by_ids_preserves_order_and_filters_missing(tmp_path: Path, monkeypatch) -> None:
     store = build_store(tmp_path)
     scanner = PhotoScanner(store, PhotoReliquaryConfig(database_path=store.database_path))
     create_test_photo(tmp_path / 'one.jpg', b'one')

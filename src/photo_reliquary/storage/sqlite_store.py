@@ -169,10 +169,26 @@ class SQLitePhotoStore(ReliquaryLoggable):
         if not requested_ids:
             return []
 
+        # Deduplicate while preserving insertion order for placeholder generation.
         unique_ids = list(dict.fromkeys(requested_ids))
         placeholders = ', '.join('?' for _ in unique_ids)
         rows = self._execute(
-            f'SELECT * FROM photos WHERE photo_id IN ({placeholders})',
+            f'''
+            SELECT
+                photo_id,
+                current_path,
+                checksum,
+                checksum_algorithm,
+                checksum_tail,
+                size_bytes,
+                mtime_ns,
+                first_seen_at,
+                last_seen_at,
+                missing_since,
+                identity_storage_mode
+            FROM photos
+            WHERE photo_id IN ({placeholders})
+            ''',
             tuple(unique_ids),
         ).fetchall()
         photo_map = {
