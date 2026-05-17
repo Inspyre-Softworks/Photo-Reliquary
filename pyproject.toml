@@ -1,0 +1,27 @@
+[tool.poetry]
+name = 'photo-reliquary'
+version = '0.1.0'
+description = 'Rename-resilient photo identity, tagging, and analysis storage for local image libraries.'
+authors = ['Taylor B. | Inspyre-Softworks']
+license = 'MIT'
+readme = 'README.md'
+packages = [{ include = 'photo_reliquary', from = 'src' }]
+
+[tool.poetry.dependencies]
+python = '^3.11'
+inspy-logger = '^3.2.3'
+typer = '^0.25.1'
+
+[tool.poetry.group.dev.dependencies]
+pytest = '^9.0.3'
+
+[tool.poetry.scripts]
+photo-reliquary = 'photo_reliquary.cli:main'
+
+[tool.pytest.ini_options]
+addopts = '-ra'
+testpaths = ['tests']
+
+[build-system]
+requires = ['poetry-core>=1.9.0']
+build-backend = 'poetry.core.masonry.api'
