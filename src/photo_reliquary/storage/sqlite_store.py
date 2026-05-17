@@ -169,8 +169,7 @@ class SQLitePhotoStore(ReliquaryLoggable):
         if not requested_ids:
             return []
 
-        # dict.fromkeys preserves insertion order in Python 3.7+, so this
-        # deduplicates IDs without changing caller-visible result ordering.
+        # Deduplicate IDs while preserving insertion order.
         unique_ids = list(dict.fromkeys(requested_ids))
         placeholders = ', '.join('?' for _ in unique_ids)
         rows = self._execute(

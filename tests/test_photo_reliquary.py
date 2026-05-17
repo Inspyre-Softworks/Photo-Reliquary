@@ -30,7 +30,7 @@ def test_generate_photo_id() -> None:
     assert len(photo_id) > 10
 
 
-def test_import_does_not_initialize_logging(monkeypatch) -> None:
+def test_package_import_does_not_call_start_logger(monkeypatch) -> None:
     calls: list[str] = []
     original_package = sys.modules.get('photo_reliquary')
 
