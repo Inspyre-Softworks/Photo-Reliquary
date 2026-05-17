@@ -32,13 +32,19 @@ def test_generate_photo_id() -> None:
 
 def test_import_does_not_initialize_logging(monkeypatch) -> None:
     calls: list[str] = []
+    original_package = sys.modules.get('photo_reliquary')
 
     def fake_start_logger() -> None:
         calls.append('called')
 
     monkeypatch.setattr(logging_utils, 'start_logger', fake_start_logger)
     sys.modules.pop('photo_reliquary', None)
-    package = importlib.import_module('photo_reliquary')
+    try:
+        package = importlib.import_module('photo_reliquary')
+    finally:
+        sys.modules.pop('photo_reliquary', None)
+        if original_package is not None:
+            sys.modules['photo_reliquary'] = original_package
 
     assert calls == []
     assert hasattr(package, 'init_logging')
