@@ -6,6 +6,7 @@ Taylor B. | Inspyre-Softworks
 from __future__ import annotations
 
 from photo_reliquary.logging_utils import ReliquaryLoggable
+from photo_reliquary.models import PhotoRecord
 from photo_reliquary.storage.sqlite_store import SQLitePhotoStore
 
 
@@ -34,7 +35,7 @@ class TagManager(ReliquaryLoggable):
         photo = self._store.resolve_photo(photo_reference)
         return self._store.list_tags(photo.photo_id)
 
-    def find_photos_by_tag(self, tag: str):
+    def find_photos_by_tag(self, tag: str) -> list[PhotoRecord]:
         """Return photo records matching *tag*."""
 
         return self._store.find_photos_by_tag(tag)
