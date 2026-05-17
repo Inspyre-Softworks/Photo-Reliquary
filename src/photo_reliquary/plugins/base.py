@@ -14,7 +14,13 @@ from photo_reliquary.models import PhotoRecord
 
 
 class PhotoAnalyzerPlugin(ReliquaryLoggable, ABC):
-    """Base class for analyzer plugins."""
+    """Base class for analyzer plugins.
+
+    Subclasses must define:
+        name: Human-readable plugin identifier.
+        version: Plugin version string.
+        supported_file_types: Lowercase file suffixes with leading dots.
+    """
 
     name: str
     version: str

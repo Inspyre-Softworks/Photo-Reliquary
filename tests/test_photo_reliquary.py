@@ -12,7 +12,7 @@ from photo_reliquary.tags.manager import TagManager
 from photo_reliquary.utils.hashing import calculate_checksum, checksum_tail
 
 
-def write_photo(path: Path, content: bytes = b'fake-image-bytes') -> Path:
+def create_test_photo(path: Path, content: bytes = b'fake-image-bytes') -> Path:
     path.write_bytes(content)
     return path
 
@@ -28,7 +28,7 @@ def test_generate_photo_id() -> None:
 
 
 def test_checksum_and_tail(tmp_path: Path) -> None:
-    photo_path = write_photo(tmp_path / 'sample.jpg', b'abc123')
+    photo_path = create_test_photo(tmp_path / 'sample.jpg', b'abc123')
     checksum = calculate_checksum(photo_path)
     assert len(checksum) == 64
     assert checksum_tail(checksum) == checksum[-5:]
@@ -37,7 +37,7 @@ def test_checksum_and_tail(tmp_path: Path) -> None:
 def test_scan_adds_photo_to_database(tmp_path: Path) -> None:
     store = build_store(tmp_path)
     scanner = PhotoScanner(store, PhotoReliquaryConfig(database_path=store.database_path))
-    photo_path = write_photo(tmp_path / 'import.jpg')
+    photo_path = create_test_photo(tmp_path / 'import.jpg')
 
     summary = scanner.scan(tmp_path)
 
@@ -53,7 +53,7 @@ def test_tags_survive_path_change_reconciliation(tmp_path: Path) -> None:
     store = build_store(tmp_path)
     scanner = PhotoScanner(store, PhotoReliquaryConfig(database_path=store.database_path))
     tags = TagManager(store)
-    original = write_photo(tmp_path / 'original.jpg', b'rename-me')
+    original = create_test_photo(tmp_path / 'original.jpg', b'rename-me')
 
     first_summary = scanner.scan(tmp_path)
     photo_id = first_summary.imported_photo_ids[0]
@@ -73,7 +73,7 @@ def test_tags_survive_path_change_reconciliation(tmp_path: Path) -> None:
 def test_missing_photos_are_marked(tmp_path: Path) -> None:
     store = build_store(tmp_path)
     scanner = PhotoScanner(store, PhotoReliquaryConfig(database_path=store.database_path))
-    photo_path = write_photo(tmp_path / 'missing.jpg', b'missing')
+    photo_path = create_test_photo(tmp_path / 'missing.jpg', b'missing')
 
     summary = scanner.scan(tmp_path)
     photo_id = summary.imported_photo_ids[0]
@@ -91,7 +91,7 @@ def test_add_remove_and_list_tags(tmp_path: Path) -> None:
     store = build_store(tmp_path)
     scanner = PhotoScanner(store, PhotoReliquaryConfig(database_path=store.database_path))
     tags = TagManager(store)
-    write_photo(tmp_path / 'tagged.jpg', b'tag-me')
+    create_test_photo(tmp_path / 'tagged.jpg', b'tag-me')
     photo_id = scanner.scan(tmp_path).imported_photo_ids[0]
 
     tags.add_tag(photo_id, 'travel')
@@ -107,7 +107,7 @@ def test_store_machine_annotations(tmp_path: Path) -> None:
     store = build_store(tmp_path)
     scanner = PhotoScanner(store, PhotoReliquaryConfig(database_path=store.database_path))
     registry = PluginRegistry()
-    write_photo(tmp_path / 'analysis.jpg', b'analyze-me')
+    create_test_photo(tmp_path / 'analysis.jpg', b'analyze-me')
     photo_id = scanner.scan(tmp_path).imported_photo_ids[0]
     photo = store.get_photo_by_id(photo_id)
     assert photo is not None

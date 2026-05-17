@@ -363,15 +363,10 @@ class SQLitePhotoStore(ReliquaryLoggable):
     def list_scan_issues(self, issue_types: Iterable[ScanIssueType] | None = None) -> list[ScanIssue]:
         """Return structured scan issues."""
 
-        if issue_types is None:
-            rows = self._execute('SELECT * FROM scan_issues ORDER BY created_at ASC').fetchall()
-        else:
-            issue_type_values = tuple(issue_type.value for issue_type in issue_types)
-            placeholders = ', '.join('?' for _ in issue_type_values)
-            rows = self._execute(
-                f'SELECT * FROM scan_issues WHERE issue_type IN ({placeholders}) ORDER BY created_at ASC',
-                issue_type_values,
-            ).fetchall()
+        rows = self._execute('SELECT * FROM scan_issues ORDER BY created_at ASC').fetchall()
+        allowed_issue_types = None
+        if issue_types is not None:
+            allowed_issue_types = {issue_type.value for issue_type in issue_types}
         return [
             ScanIssue(
                 issue_type=ScanIssueType(row['issue_type']),
@@ -383,6 +378,7 @@ class SQLitePhotoStore(ReliquaryLoggable):
                 created_at=row['created_at'],
             )
             for row in rows
+            if allowed_issue_types is None or row['issue_type'] in allowed_issue_types
         ]
 
     def refresh_duplicate_checksum_issues(self) -> list[ScanIssue]:
