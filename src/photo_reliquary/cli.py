@@ -8,10 +8,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
-from inspy_logger import start_logger
 
 from photo_reliquary.analysis.models import AnalysisRun
 from photo_reliquary.config import PhotoReliquaryConfig
+from photo_reliquary.logging_utils import init_logging
 from photo_reliquary.plugins.registry import PluginRegistry
 from photo_reliquary.scanner import PhotoScanner
 from photo_reliquary.storage.sqlite_store import SQLitePhotoStore
@@ -40,7 +40,7 @@ def _build_services(database: Path | None = None) -> tuple[SQLitePhotoStore, Pho
 def main_callback() -> None:
     """Initialize logging for CLI operations."""
 
-    start_logger()
+    init_logging()
 
 
 @app.command()

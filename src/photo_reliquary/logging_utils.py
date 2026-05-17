@@ -5,9 +5,15 @@ Taylor B. | Inspyre-Softworks
 
 from __future__ import annotations
 
-from inspy_logger import Loggable, Logger
+from inspy_logger import Loggable, Logger, start_logger
 
 ROOT_LOGGER = Logger('PhotoReliquary')
+
+
+def init_logging() -> None:
+    """Initialize Inspy-Logger for user-facing application entry points."""
+
+    start_logger()
 
 
 class ReliquaryLoggable(Loggable):

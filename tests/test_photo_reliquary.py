@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import importlib
+import sys
 from pathlib import Path
 
+import photo_reliquary.logging_utils as logging_utils
 from photo_reliquary.analysis.models import AnalysisRun
 from photo_reliquary.config import PhotoReliquaryConfig
 from photo_reliquary.identity import generate_photo_id
@@ -25,6 +28,33 @@ def test_generate_photo_id() -> None:
     photo_id = generate_photo_id()
     assert photo_id.startswith('pr_')
     assert len(photo_id) > 10
+
+
+def test_import_does_not_initialize_logging(monkeypatch) -> None:
+    calls: list[str] = []
+
+    def fake_start_logger() -> None:
+        calls.append('called')
+
+    monkeypatch.setattr(logging_utils, 'start_logger', fake_start_logger)
+    sys.modules.pop('photo_reliquary', None)
+    package = importlib.import_module('photo_reliquary')
+
+    assert calls == []
+    assert hasattr(package, 'init_logging')
+
+
+def test_init_logging_is_explicit(monkeypatch) -> None:
+    calls: list[str] = []
+
+    def fake_start_logger() -> None:
+        calls.append('called')
+
+    monkeypatch.setattr(logging_utils, 'start_logger', fake_start_logger)
+
+    logging_utils.init_logging()
+
+    assert calls == ['called']
 
 
 def test_checksum_and_tail(tmp_path: Path) -> None:
@@ -136,3 +166,28 @@ def test_builtin_plugin_loads() -> None:
     plugin = registry.get('nudenet-example')
     assert plugin.name == 'nudenet-example'
     assert '.jpg' in plugin.supported_file_types
+
+
+def test_list_photos_by_ids_uses_single_batch_lookup(tmp_path: Path, monkeypatch) -> None:
+    store = build_store(tmp_path)
+    scanner = PhotoScanner(store, PhotoReliquaryConfig(database_path=store.database_path))
+    create_test_photo(tmp_path / 'one.jpg', b'one')
+    create_test_photo(tmp_path / 'two.jpg', b'two')
+    summary = scanner.scan(tmp_path)
+    photo_ids = summary.imported_photo_ids
+
+    executed_sql: list[str] = []
+    original_execute = store._execute
+
+    def capture_execute(sql: str, parameters=()):
+        executed_sql.append(sql)
+        return original_execute(sql, parameters)
+
+    monkeypatch.setattr(store, '_execute', capture_execute)
+
+    photos = store.list_photos_by_ids([photo_ids[1], 'missing-id', photo_ids[0], photo_ids[1]])
+
+    assert [photo.photo_id for photo in photos] == [photo_ids[1], photo_ids[0], photo_ids[1]]
+    assert len(executed_sql) == 1
+    assert 'WHERE photo_id IN' in executed_sql[0]
+    store.close()

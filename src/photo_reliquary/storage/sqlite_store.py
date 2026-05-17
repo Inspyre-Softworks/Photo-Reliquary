@@ -165,12 +165,22 @@ class SQLitePhotoStore(ReliquaryLoggable):
     def list_photos_by_ids(self, photo_ids: Iterable[str]) -> list[PhotoRecord]:
         """Return photos matching the provided IDs."""
 
-        results: list[PhotoRecord] = []
-        for photo_id in photo_ids:
-            photo = self.get_photo_by_id(photo_id)
-            if photo is not None:
-                results.append(photo)
-        return results
+        requested_ids = list(photo_ids)
+        if not requested_ids:
+            return []
+
+        unique_ids = list(dict.fromkeys(requested_ids))
+        placeholders = ', '.join('?' for _ in unique_ids)
+        rows = self._execute(
+            f'SELECT * FROM photos WHERE photo_id IN ({placeholders})',
+            tuple(unique_ids),
+        ).fetchall()
+        photo_map = {
+            row['photo_id']: photo
+            for row in rows
+            if (photo := self._row_to_photo(row)) is not None
+        }
+        return [photo_map[photo_id] for photo_id in requested_ids if photo_id in photo_map]
 
     def resolve_photo(self, reference: str) -> PhotoRecord:
         """Resolve a photo by photo ID or path string."""

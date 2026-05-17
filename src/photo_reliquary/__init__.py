@@ -7,15 +7,12 @@ Description:
     annotations even when image files are renamed or moved outside the app.
 """
 
-from inspy_logger import start_logger
-
 from photo_reliquary.config import PhotoReliquaryConfig
 from photo_reliquary.identity import PhotoIdentityService, generate_photo_id
+from photo_reliquary.logging_utils import init_logging
 from photo_reliquary.scanner import PhotoScanner
 from photo_reliquary.storage.sqlite_store import SQLitePhotoStore
 from photo_reliquary.tags.manager import TagManager
-
-start_logger()
 
 __all__ = [
     'PhotoIdentityService',
@@ -24,6 +21,7 @@ __all__ = [
     'SQLitePhotoStore',
     'TagManager',
     'generate_photo_id',
+    'init_logging',
 ]
 
 __version__ = '0.1.0'
